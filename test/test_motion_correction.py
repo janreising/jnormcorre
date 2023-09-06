@@ -217,3 +217,20 @@ class Test_mc:
         # test correct shift reconstruction
         np.allclose(shifts, calc_shifts), f"calculated shifts are to different from True value"
 
+    def test_bigtiff(self, shape=(15000, 512, 512)):
+
+        frames, X, Y = shape
+        data = np.zeros((frames, X, Y))
+        data[:, int(X/2), int(Y/2)] = 1
+
+        mc = MotionCorrect(data,
+                max_shifts=(5, 5), niter_rig=1, splits_rig=5,
+                num_splits_to_process_rig=5, strides=(50, 50), overlaps=(10, 10),
+                pw_rigid=True, splits_els=5, num_splits_to_process_els=5,
+                upsample_factor_grid=4, max_deviation_rigid=3,
+                nonneg_movie=True, gSig_filt=None, min_mov=-1, niter_els=3)
+
+        # Perform motion correction
+        _, tiff_path = mc.motion_correct(save_movie=True)
+
+        assert Path(tiff_path).exists(), f"cannot find tiff file: {tiff_path}"
